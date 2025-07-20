@@ -1,49 +1,68 @@
-# Weekly Weave Bot
+# Weekly Weave Bot 🤖
 
-A modular Telegram bot for tracking events, updates, and content for the Weekly Weave newsletter.
+A modular Telegram bot that intelligently extracts event information, news updates, and content from web pages for the Weekly Weave newsletter. Built with TypeScript, AI-powered extraction, and a focus on modularity.
 
 ## Features
 
-- **Telegram Commands**: `/event`, `/update`, `/content` - Submit links for scraping
-- **Intelligent Scraping**: AI-powered extraction of structured data from web pages
-- **Airtable Integration**: Automatic storage of scraped data with schema management
-- **Error Handling**: Comprehensive error logging and user feedback
-- **Modular Architecture**: Easy to swap storage backends or messaging interfaces
+- 🧠 **AI-Powered Extraction**: Uses OpenAI GPT-4o-mini to intelligently extract structured data
+- 📅 **Smart Event Detection**: Extracts dates, venues, costs, and organizer information
+- 🏔️ **Boulder Detection**: Automatically identifies Boulder, Colorado-related content
+- 🔌 **Modular Architecture**: Easy to swap storage backends, bot platforms, or AI providers
+- 📊 **Structured Data Support**: Extracts JSON-LD for accurate event information
+- 🧪 **Comprehensive Testing**: Full test suite with mock and real API testing
 
-## Project Structure
+## Quick Start
 
+```bash
+# Clone the repository
+git clone <repository-url>
+cd weekly-weave-bot
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your API keys
+
+# Validate your setup
+npm run setup:validate
+
+# Run the bot
+npm run dev
 ```
-weekly-weave-bot/
-├── src/
-│   ├── bot/           # Telegram bot implementation
-│   ├── scrapers/      # Web scraping and AI extraction
-│   ├── storage/       # Storage implementations (Airtable, etc.)
-│   ├── interfaces/    # TypeScript interfaces for modularity
-│   ├── types/         # Shared types
-│   └── utils/         # Configuration, logging, helpers
-├── tests/             # Test files
-├── config/            # Configuration files
-└── dist/              # Compiled JavaScript output
-```
 
-## Setup
+## Documentation
 
-1. Copy `.env.example` to `.env` and fill in your credentials
-2. Install dependencies: `npm install`
-3. Run in development mode: `npm run dev`
+📚 **[View Full Documentation](docs/README.md)**
 
-## Testing
+Quick links:
+- 🚀 **[Quick Start Guide](docs/setup/QUICKSTART.md)** - Get running in 5 minutes
+- 📖 **[Complete Setup Guide](docs/setup/SETUP_GUIDE.md)** - Detailed instructions
+- 🧪 **[Testing Guide](docs/testing/TESTING_GUIDE.md)** - Run and write tests
+- 🏗️ **[Architecture Overview](docs/architecture/AI_ASSISTANT_CONTEXT.md)** - Technical details
+- 💻 **[Development Guide](docs/development/DEVELOPMENT_GUIDE.md)** - For contributors
 
-Run tests with: `npm test`
+## Bot Commands
 
-## Building
+- `/event <url>` - Extract event information from a webpage
+- `/update <url>` - Extract news or update information
+- `/content <url>` - Extract general content
+- `/help` - Show available commands
 
-Build for production: `npm run build`
+## Contributing
 
-## Modular Design
+We welcome contributions! See our [Contributing Guide](docs/contributing/CONTRIBUTING.md) for details.
 
-The bot is designed with interfaces to allow easy swapping of components:
+Key extension points:
+- `StorageInterface` - Add new storage backends
+- `BotInterface` - Support new chat platforms
+- `ScraperInterface` - Add specialized scrapers
 
-- **Storage**: Implement `StorageInterface` to use different backends (Notion, MongoDB, etc.)
-- **Bot**: Implement `BotInterface` to use different messaging platforms (Discord, Slack, etc.)
-- **Scraper**: Implement `ScraperInterface` to customize extraction logic
+## License
+
+[Add your license here]
+
+---
+
+Built with ❤️ for the Boulder community and the Weekly Weave newsletter.
