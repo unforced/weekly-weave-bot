@@ -2,12 +2,12 @@
   "name": "weekly-weave-bot",
   "version": "1.0.0",
   "description": "Telegram bot for tracking events, updates, and content for Weekly Weave newsletter",
-  "main": "dist/index.js",
+  "main": "dist/main.js",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/main.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/main.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:real": "USE_REAL_AI=1 jest tests/real-ai-extraction.test.ts tests/verified-working.test.ts",
@@ -15,12 +15,14 @@
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
     "setup:validate": "tsx scripts/setup-validator.ts",
-    "diagnose": "tsx scripts/setup-validator.ts"
+    "diagnose": "tsx scripts/setup-validator.ts",
+    "debug:airtable": "tsx scripts/debug-airtable.ts"
   },
   "dependencies": {
     "airtable": "^0.12.2",
     "axios": "^1.7.2",
     "cheerio": "^1.0.0",
+    "date-fns": "^3.6.0",
     "dotenv": "^16.4.5",
     "openai": "^4.65.0",
     "telegraf": "^4.16.3",
