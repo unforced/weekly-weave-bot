@@ -2,12 +2,14 @@ import { Telegraf, Context } from 'telegraf';
 import { BotInterface, BotCommand } from '../interfaces/bot.interface.js';
 import { StorageInterface } from '../interfaces/storage.interface.js';
 import { ScraperInterface } from '../interfaces/scraper.interface.js';
+import { NewsletterGeneratorInterface } from '../interfaces/newsletter.interface.js';
 import { logger } from '../utils/logger.js';
 import { loadConfig } from '../utils/config.js';
 
 interface BotContext extends Context {
   storage?: StorageInterface;
   scraper?: ScraperInterface;
+  newsletterGenerator?: NewsletterGeneratorInterface;
 }
 
 export class TelegramBot implements BotInterface {
@@ -16,7 +18,8 @@ export class TelegramBot implements BotInterface {
   
   constructor(
     private storage: StorageInterface,
-    private scraper: ScraperInterface
+    private scraper: ScraperInterface,
+    private newsletterGenerator?: NewsletterGeneratorInterface
   ) {
     const config = loadConfig();
     this.bot = new Telegraf<BotContext>(config.TELEGRAM_BOT_TOKEN);
@@ -24,6 +27,7 @@ export class TelegramBot implements BotInterface {
     this.bot.use((ctx, next) => {
       ctx.storage = this.storage;
       ctx.scraper = this.scraper;
+      ctx.newsletterGenerator = this.newsletterGenerator;
       return next();
     });
     

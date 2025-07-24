@@ -1,7 +1,17 @@
 import { TelegramBot } from './bot/telegram-bot.js';
 import { AirtableStorage } from './storage/airtable-storage.js';
 import { IntelligentScraper } from './scrapers/intelligent-scraper.js';
-import { eventCommand, updateCommand, contentCommand, errorCommand, initCommand } from './bot/commands.js';
+import { NewsletterGenerator } from './newsletter/index.js';
+import { 
+  eventCommand, 
+  updateCommand, 
+  contentCommand, 
+  errorCommand, 
+  initCommand,
+  generateNewsletterCommand,
+  previewNewsletterCommand,
+  listTemplatesCommand
+} from './bot/commands.js';
 import { logger } from './utils/logger.js';
 
 async function main() {
@@ -11,7 +21,8 @@ async function main() {
     // Initialize components
     const storage = new AirtableStorage();
     const scraper = new IntelligentScraper();
-    const bot = new TelegramBot(storage, scraper);
+    const newsletterGenerator = new NewsletterGenerator(storage);
+    const bot = new TelegramBot(storage, scraper, newsletterGenerator);
     
     // Register commands
     bot.registerCommand(eventCommand);
@@ -19,6 +30,9 @@ async function main() {
     bot.registerCommand(contentCommand);
     bot.registerCommand(errorCommand);
     bot.registerCommand(initCommand);
+    bot.registerCommand(generateNewsletterCommand);
+    bot.registerCommand(previewNewsletterCommand);
+    bot.registerCommand(listTemplatesCommand);
     
     // Start the bot
     await bot.start();

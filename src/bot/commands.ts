@@ -2,12 +2,17 @@ import { Context } from 'telegraf';
 import { BotCommand } from '../interfaces/bot.interface.js';
 import { StorageInterface } from '../interfaces/storage.interface.js';
 import { ScraperInterface } from '../interfaces/scraper.interface.js';
+import { NewsletterGeneratorInterface } from '../interfaces/newsletter.interface.js';
 import { logger } from '../utils/logger.js';
 import { loadConfig } from '../utils/config.js';
+import { startOfWeek, endOfWeek, addDays, format } from 'date-fns';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
 interface CommandContext extends Context {
   storage: StorageInterface;
   scraper: ScraperInterface;
+  newsletterGenerator?: NewsletterGeneratorInterface;
 }
 
 function extractUrl(text: string): string | null {
@@ -187,6 +192,149 @@ export const initCommand: BotCommand = {
     } catch (error) {
       logger.error('Error initializing Airtable:', error);
       await ctx.reply('❌ Failed to initialize Airtable base.');
+    }
+  }
+};
+
+export const generateNewsletterCommand: BotCommand = {
+  command: 'generate_newsletter',
+  description: 'Generate a newsletter for the current week',
+  handler: async (ctx: CommandContext) => {
+    if (!ctx.newsletterGenerator) {
+      await ctx.reply('❌ Newsletter generator not configured.');
+      return;
+    }
+    
+    const messageText = (ctx.message && 'text' in ctx.message) ? ctx.message.text : '';
+    const args = messageText.split(' ').slice(1);
+    const template = args[0] || 'default';
+    
+    await ctx.reply('🔄 Generating newsletter...');
+    
+    try {
+      const startDate = startOfWeek(new Date(), { weekStartsOn: 1 }); // Monday
+      const endDate = endOfWeek(new Date(), { weekStartsOn: 1 }); // Sunday
+      
+      const newsletter = await ctx.newsletterGenerator.generateNewsletter({
+        startDate,
+        endDate,
+        template,
+        title: `Weekly Newsletter: ${format(startDate, 'MMMM d')} - ${format(endDate, 'MMMM d')}`,
+        locationFilter: 'Boulder'
+      });
+      
+      // Save to local file
+      const outputDir = path.join(process.cwd(), 'newsletters');
+      await fs.mkdir(outputDir, { recursive: true });
+      
+      const filename = `newsletter-${format(startDate, 'yyyy-MM-dd')}.html`;
+      const filepath = path.join(outputDir, filename);
+      await fs.writeFile(filepath, newsletter.html);
+      
+      const summary = `✅ Newsletter generated successfully!
+
+📅 Period: ${format(startDate, 'MMM d')} - ${format(endDate, 'MMM d')}
+📝 Template: ${template}
+📊 Events: ${newsletter.metadata.itemCount.events}
+📰 Updates: ${newsletter.metadata.itemCount.updates}
+📄 Content: ${newsletter.metadata.itemCount.content}
+
+💾 Saved to: ${filename}`;
+      
+      await ctx.reply(summary, { parse_mode: 'Markdown' });
+      
+      // Send HTML file if small enough
+      if (newsletter.html.length < 50000) {
+        await ctx.replyWithDocument({ source: filepath, filename });
+      }
+    } catch (error) {
+      logger.error('Error generating newsletter:', error);
+      await ctx.reply('❌ Failed to generate newsletter.');
+    }
+  }
+};
+
+export const previewNewsletterCommand: BotCommand = {
+  command: 'preview_newsletter',
+  description: 'Preview newsletter in Markdown format',
+  handler: async (ctx: CommandContext) => {
+    if (!ctx.newsletterGenerator) {
+      await ctx.reply('❌ Newsletter generator not configured.');
+      return;
+    }
+    
+    const messageText = (ctx.message && 'text' in ctx.message) ? ctx.message.text : '';
+    const args = messageText.split(' ').slice(1);
+    const template = args[0] || 'default';
+    
+    await ctx.reply('🔄 Generating preview...');
+    
+    try {
+      const startDate = startOfWeek(new Date(), { weekStartsOn: 1 });
+      const endDate = endOfWeek(new Date(), { weekStartsOn: 1 });
+      
+      const newsletter = await ctx.newsletterGenerator.generateNewsletter({
+        startDate,
+        endDate,
+        template,
+        title: `Weekly Newsletter Preview`,
+        locationFilter: 'Boulder'
+      });
+      
+      // Split markdown if too long for Telegram
+      const markdown = newsletter.markdown;
+      const maxLength = 4000;
+      
+      if (markdown.length <= maxLength) {
+        await ctx.reply(markdown, { parse_mode: 'Markdown' });
+      } else {
+        // Split into multiple messages
+        const parts = [];
+        let currentPart = '';
+        const lines = markdown.split('\n');
+        
+        for (const line of lines) {
+          if (currentPart.length + line.length + 1 > maxLength) {
+            parts.push(currentPart);
+            currentPart = line;
+          } else {
+            currentPart += (currentPart ? '\n' : '') + line;
+          }
+        }
+        if (currentPart) parts.push(currentPart);
+        
+        for (const part of parts) {
+          await ctx.reply(part, { parse_mode: 'Markdown' });
+        }
+      }
+    } catch (error) {
+      logger.error('Error previewing newsletter:', error);
+      await ctx.reply('❌ Failed to preview newsletter.');
+    }
+  }
+};
+
+export const listTemplatesCommand: BotCommand = {
+  command: 'list_templates',
+  description: 'List available newsletter templates',
+  handler: async (ctx: CommandContext) => {
+    if (!ctx.newsletterGenerator) {
+      await ctx.reply('❌ Newsletter generator not configured.');
+      return;
+    }
+    
+    try {
+      const templates = await ctx.newsletterGenerator.getAvailableTemplates();
+      
+      let message = '📋 Available Newsletter Templates:\n\n';
+      for (const template of templates) {
+        message += `**${template.name}**\n${template.description}\n\n`;
+      }
+      
+      await ctx.reply(message, { parse_mode: 'Markdown' });
+    } catch (error) {
+      logger.error('Error listing templates:', error);
+      await ctx.reply('❌ Failed to list templates.');
     }
   }
 };

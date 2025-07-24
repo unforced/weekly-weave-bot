@@ -11,6 +11,9 @@ export interface EventData {
   organizerName?: string;
   organizerContact?: string;
   isBoulder: boolean;
+  category?: 'literary' | 'cultural' | 'music' | 'activist' | 'tech' | 'community' | 'other';
+  isRecurring?: boolean;
+  registrationLink?: string;
 }
 
 export interface UpdateData {
@@ -19,6 +22,7 @@ export interface UpdateData {
   oneLiner: string;
   isBoulder: boolean;
   sourceWebsite: string;
+  createdAt?: Date;
 }
 
 export interface ContentData {
@@ -27,6 +31,7 @@ export interface ContentData {
   oneLiner: string;
   isBoulder: boolean;
   sourceWebsite: string;
+  createdAt?: Date;
 }
 
 export interface ErrorLog {
@@ -50,4 +55,8 @@ export interface StorageInterface {
   getRecentEvents(limit?: number): Promise<EventData[]>;
   getRecentUpdates(limit?: number): Promise<UpdateData[]>;
   getRecentContent(limit?: number): Promise<ContentData[]>;
+  
+  getEventsByDateRange(startDate: Date, endDate: Date, locationFilter?: string): Promise<EventData[]>;
+  getUpdatesByDateRange(startDate: Date, endDate: Date): Promise<UpdateData[]>;
+  getContentByDateRange(startDate: Date, endDate: Date): Promise<ContentData[]>;
 }
